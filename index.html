@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Password Strength Analyzer</title>
+  <style>
+    /* ── Reset & Base ── */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f4ff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 36px 32px;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.10);
+    }
+
+    h1 {
+      font-size: 24px;
+      color: #1a1a2e;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: #888;
+      margin-bottom: 28px;
+    }
+
+    /* ── Input ── */
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #444;
+      margin-bottom: 8px;
+    }
+
+    .input-wrap {
+      position: relative;
+      margin-bottom: 20px;
+    }
+
+    input[type="password"],
+    input[type="text"] {
+      width: 100%;
+      padding: 12px 44px 12px 14px;
+      font-size: 16px;
+      border: 1.5px solid #ddd;
+      border-radius: 10px;
+      outline: none;
+      transition: border-color 0.2s;
+      font-family: monospace;
+      letter-spacing: 1px;
+      color: #1a1a2e;
+    }
+
+    input:focus {
+      border-color: #4361ee;
+    }
+
+    /* Eye toggle button */
+    .eye-btn {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 18px;
+      color: #aaa;
+    }
+
+    /* ── Strength Bar ── */
+    .bar-container {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .bar {
+      flex: 1;
+      height: 6px;
+      border-radius: 4px;
+      background: #e8e8e8;
+      transition: background 0.3s;
+    }
+
+    .strength-text {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: #aaa;
+    }
+
+    /* ── Checklist ── */
+    .checklist {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #999;
+      background: #f7f7f7;
+      padding: 8px 10px;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+
+    .check-item.pass {
+      color: #0d9e6e;
+      background: #e6f9f3;
+    }
+
+    .check-item .icon {
+      font-size: 15px;
+    }
+
+    /* ── Suggestions ── */
+    .section-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #aaa;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 12px;
+    }
+
+    .suggestion {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: #f7f8ff;
+      border: 1px solid #e0e4ff;
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-bottom: 8px;
+    }
+
+    .sug-left {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .sug-type {
+      font-size: 11px;
+      color: #888;
+    }
+
+    .sug-pw {
+      font-family: monospace;
+      font-size: 14px;
+      color: #1a1a2e;
+      word-break: break-all;
+    }
+
+    .copy-btn {
+      background: #4361ee;
+      color: white;
+      border: none;
+      border-radius: 7px;
+      padding: 6px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.2s;
+    }
+
+    .copy-btn:hover {
+      background: #3451d1;
+    }
+
+    .copy-btn.copied {
+      background: #0d9e6e;
+    }
+
+    /* ── Hidden helper ── */
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h1>🔐 Password Analyzer</h1>
+  <p class="subtitle">Check how strong your password is</p>
+
+  <!-- Input -->
+  <label for="pwInput">Enter your password</label>
+  <div class="input-wrap">
+    <input type="password" id="pwInput" placeholder="Type your password here…" oninput="analyzePassword()" />
+    <button class="eye-btn" onclick="toggleVisibility()" id="eyeBtn">👁️</button>
+  </div>
+
+  <!-- Strength bar (4 segments) -->
+  <div class="bar-container">
+    <div class="bar" id="bar1"></div>
+    <div class="bar" id="bar2"></div>
+    <div class="bar" id="bar3"></div>
+    <div class="bar" id="bar4"></div>
+  </div>
+  <div class="strength-text" id="strengthText">Start typing to check strength</div>
+
+  <!-- Checklist -->
+  <div class="checklist">
+    <div class="check-item" id="ck-length">
+      <span class="icon">⭕</span> 8+ characters
+    </div>
+    <div class="check-item" id="ck-upper">
+      <span class="icon">⭕</span> Uppercase (A-Z)
+    </div>
+    <div class="check-item" id="ck-lower">
+      <span class="icon">⭕</span> Lowercase (a-z)
+    </div>
+    <div class="check-item" id="ck-number">
+      <span class="icon">⭕</span> Number (0-9)
+    </div>
+    <div class="check-item" id="ck-symbol">
+      <span class="icon">⭕</span> Symbol (!@#$)
+    </div>
+    <div class="check-item" id="ck-long">
+      <span class="icon">⭕</span> 12+ characters
+    </div>
+  </div>
+
+  <!-- Suggestions -->
+  <div id="suggestionsSection" class="hidden">
+    <div class="section-title">💡 Stronger alternatives</div>
+    <div id="suggestionsContainer"></div>
+  </div>
+</div>
+
+<script>
+  // ── Toggle show/hide password ──
+  function toggleVisibility() {
+    var input = document.getElementById('pwInput');
+    var btn   = document.getElementById('eyeBtn');
+
+    if (input.type === 'password') {
+      input.type = 'text';
+      btn.textContent = '🙈';
+    } else {
+      input.type = 'password';
+      btn.textContent = '👁️';
+    }
+  }
+
+  // ── Main analysis function ──
+  function analyzePassword() {
+    var pw = document.getElementById('pwInput').value;
+
+    // If empty, reset everything
+    if (pw === '') {
+      resetAll();
+      return;
+    }
+
+    // Step 1: Check each rule
+    var hasLength  = pw.length >= 8;
+    var hasUpper   = /[A-Z]/.test(pw);
+    var hasLower   = /[a-z]/.test(pw);
+    var hasNumber  = /[0-9]/.test(pw);
+    var hasSymbol  = /[^a-zA-Z0-9]/.test(pw);
+    var hasLong    = pw.length >= 12;
+
+    // Step 2: Update checklist UI
+    updateCheck('ck-length', hasLength, '8+ characters');
+    updateCheck('ck-upper',  hasUpper,  'Uppercase (A-Z)');
+    updateCheck('ck-lower',  hasLower,  'Lowercase (a-z)');
+    updateCheck('ck-number', hasNumber, 'Number (0-9)');
+    updateCheck('ck-symbol', hasSymbol, 'Symbol (!@#$)');
+    updateCheck('ck-long',   hasLong,   '12+ characters');
+
+    // Step 3: Calculate score (0 to 4)
+    var score = 0;
+    if (hasLength) score++;
+    if (hasUpper && hasLower) score++;
+    if (hasNumber) score++;
+    if (hasSymbol) score++;
+    if (hasLong) score = Math.min(score + 1, 4);
+
+    // Step 4: Update the strength bar
+    updateStrengthBar(score);
+
+    // Step 5: Show suggested passwords
+    showSuggestions(pw);
+  }
+
+  // ── Update a single check item ──
+  function updateCheck(id, passed, label) {
+    var el = document.getElementById(id);
+    if (passed) {
+      el.className = 'check-item pass';
+      el.innerHTML = '<span class="icon">✅</span> ' + label;
+    } else {
+      el.className = 'check-item';
+      el.innerHTML = '<span class="icon">⭕</span> ' + label;
+    }
+  }
+
+  // ── Update strength bar colors and label ──
+  function updateStrengthBar(score) {
+    // Colors for each strength level
+    var colors = ['#e63946', '#f4a261', '#2a9d8f', '#4361ee'];
+    var labels = ['Weak', 'Fair', 'Good', 'Strong'];
+
+    var color = colors[score - 1] || '#e8e8e8';
+    var label = score > 0 ? labels[score - 1] : 'Too short';
+
+    // Fill bars up to score
+    for (var i = 1; i <= 4; i++) {
+      var bar = document.getElementById('bar' + i);
+      bar.style.background = i <= score ? color : '#e8e8e8';
+    }
+
+    var strengthText = document.getElementById('strengthText');
+    strengthText.textContent = 'Strength: ' + label;
+    strengthText.style.color = score > 0 ? color : '#aaa';
+  }
+
+  // ── Generate and display password suggestions ──
+  function showSuggestions(pw) {
+    var section = document.getElementById('suggestionsSection');
+    var container = document.getElementById('suggestionsContainer');
+
+    var suggestions = generateSuggestions(pw);
+
+    container.innerHTML = '';
+    suggestions.forEach(function(s, index) {
+      var div = document.createElement('div');
+      div.className = 'suggestion';
+      div.innerHTML =
+        '<div class="sug-left">' +
+          '<span class="sug-type">' + s.type + '</span>' +
+          '<span class="sug-pw">' + s.pw + '</span>' +
+        '</div>' +
+        '<button class="copy-btn" id="cpBtn' + index + '" onclick="copyText(\'' + s.pw + '\', ' + index + ')">Copy</button>';
+      container.appendChild(div);
+    });
+
+    section.classList.remove('hidden');
+  }
+
+  // ── Generate 3 stronger password suggestions ──
+  function generateSuggestions(pw) {
+    var suggestions = [];
+
+    // 1. Passphrase — easy to remember, hard to crack
+    var words = ['maple', 'tiger', 'river', 'storm', 'pixel', 'noble', 'flame', 'cloud'];
+    var w1 = words[Math.floor(Math.random() * words.length)];
+    var w2 = words[Math.floor(Math.random() * words.length)];
+    var w3 = words[Math.floor(Math.random() * words.length)];
+    var num = Math.floor(Math.random() * 900) + 100;
+    suggestions.push({
+      type: '🔤 Passphrase (easy to remember)',
+      pw: w1 + '-' + w2 + '-' + w3 + num + '!'
+    });
+
+    // 2. Random strong password — 16 characters
+    var chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%';
+    var random = '';
+    for (var i = 0; i < 16; i++) {
+      random += chars[Math.floor(Math.random() * chars.length)];
+    }
+    suggestions.push({
+      type: '🎲 Random strong (16 chars)',
+      pw: random
+    });
+
+    // 3. Enhanced version of user's own password
+    var enhanced = pw;
+    // Replace common letters with symbols (leet speak)
+    enhanced = enhanced.replace(/a/gi, '@');
+    enhanced = enhanced.replace(/e/gi, '3');
+    enhanced = enhanced.replace(/o/gi, '0');
+    // Make first letter uppercase
+    enhanced = enhanced.charAt(0).toUpperCase() + enhanced.slice(1);
+    // Add a number at end if no number present
+    if (!/[0-9]/.test(enhanced)) {
+      enhanced = enhanced + Math.floor(Math.random() * 90 + 10);
+    }
+    // Add symbol if no symbol present
+    if (!/[^a-zA-Z0-9]/.test(enhanced)) {
+      enhanced = enhanced + '#';
+    }
+    suggestions.push({
+      type: '✨ Enhanced version of yours',
+      pw: enhanced
+    });
+
+    return suggestions;
+  }
+
+  // ── Copy password to clipboard ──
+  function copyText(text, index) {
+    navigator.clipboard.writeText(text).then(function() {
+      var btn = document.getElementById('cpBtn' + index);
+      btn.textContent = 'Copied!';
+      btn.className = 'copy-btn copied';
+      setTimeout(function() {
+        btn.textContent = 'Copy';
+        btn.className = 'copy-btn';
+      }, 2000);
+    });
+  }
+
+  // ── Reset everything when input is empty ──
+  function resetAll() {
+    // Reset bars
+    for (var i = 1; i <= 4; i++) {
+      document.getElementById('bar' + i).style.background = '#e8e8e8';
+    }
+    // Reset strength text
+    var st = document.getElementById('strengthText');
+    st.textContent = 'Start typing to check strength';
+    st.style.color = '#aaa';
+
+    // Reset checks
+    var checks = [
+      { id: 'ck-length', label: '8+ characters' },
+      { id: 'ck-upper',  label: 'Uppercase (A-Z)' },
+      { id: 'ck-lower',  label: 'Lowercase (a-z)' },
+      { id: 'ck-number', label: 'Number (0-9)' },
+      { id: 'ck-symbol', label: 'Symbol (!@#$)' },
+      { id: 'ck-long',   label: '12+ characters' },
+    ];
+    checks.forEach(function(c) {
+      updateCheck(c.id, false, c.label);
+    });
+
+    // Hide suggestions
+    document.getElementById('suggestionsSection').classList.add('hidden');
+  }
+</script>
+
+</body>
+</html>
