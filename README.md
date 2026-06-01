@@ -8,7 +8,7 @@ Built as part of my internship project to learn about **password security** and 
 
 ## 🚀 Live Demo
 
-> [Click here to try it live](https://github.com/surajrai1390p-hue/password-strength-analyzer)
+> [Click here to try it live](https://github.com/krrishnaik20/Password-Strength-Analyzer)
 
 
 ---
@@ -92,17 +92,12 @@ password-strength-analyzer/
 2. Open `index.html` in any web browser
 3. That's it — no installation needed!
 
-```bash
-git clone https://github.com/surajrai1390p-hue/password-strength-analyzer
-cd password-strength-analyzer
-# Open index.html in your browser
-```
 
 ---
 
 ## 👤 Author
 
-SURAJ RAI
+KRRISH NAIK
 Internship Project — 2026
 
 ---
