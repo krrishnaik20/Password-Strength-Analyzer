@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>SecurePass</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+    margin:0;
+    font-family:Arial;
+    background:#101827;
+    color:white;
+}
+header{
+    padding:20px 8%;
+    border-bottom:1px solid #263247;
+}
+.logo{font-size:22px;font-weight:bold}
+.logo span{color:#38bdf8}
+
+main{
+    width:85%;
+    max-width:1000px;
+    margin:50px auto;
+}
+
+h1{font-size:35px}
+p{color:#8fa3bf}
+
+.layout{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:25px;
+}
+
+.box{
+    background:#182235;
+    padding:25px;
+    border:1px solid #263247;
+    border-radius:14px;
+}
+
+input{
+    width:75%;
+    padding:12px;
+    background:#101827;
+    color:white;
+    border:1px solid #34445d;
+    border-radius:7px;
+}
+
+button{
+    padding:10px;
+    border:0;
+    border-radius:7px;
+    cursor:pointer;
+}
+
+.show,.copy{
+    background:#38bdf8;
+}
+
+#result{
+    margin-top:20px;
+    font-weight:bold;
+}
+
+.bar{
+    height:8px;
+    background:#303b4f;
+    margin:10px 0 20px;
+    border-radius:5px;
+}
+
+#progress{
+    height:100%;
+    width:0%;
+    background:#38bdf8;
+}
+
+.check{
+    background:#111a2a;
+    padding:9px;
+    margin:7px 0;
+    color:#8292a8;
+    border-radius:6px;
+}
+
+.pass{
+    color:#4ade80;
+    background:#10291e;
+}
+
+.suggestion{
+    background:#111a2a;
+    padding:12px;
+    margin:10px 0;
+    border-radius:7px;
+}
+
+.password{
+    color:#38bdf8;
+    font-family:monospace;
+    margin-right:10px;
+}
+
+footer{
+    text-align:center;
+    color:#65758c;
+}
+
+@media(max-width:700px){
+    .layout{grid-template-columns:1fr}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">Secure<span>Pass</span></div>
+</header>
+
+<main>
+
+<h1>Password Strength Checker</h1>
+<p>Check your password and make it stronger.</p>
+
+<div class="layout">
+
+<!-- PASSWORD CHECKER -->
+
+<div class="box">
+
+<h2>Check Password</h2>
+
+<input
+    type="password"
+    id="password"
+    placeholder="Enter password"
+    oninput="checkPassword()"
+>
+
+<button class="show" onclick="showPassword()">Show</button>
+
+<div id="result">No password</div>
+
+<div class="bar">
+    <div id="progress"></div>
+</div>
+
+<h3>Security Requirements</h3>
+
+<div id="length" class="check">○ 8+ characters</div>
+<div id="upper" class="check">○ Uppercase letter</div>
+<div id="lower" class="check">○ Lowercase letter</div>
+<div id="number" class="check">○ Number</div>
+<div id="symbol" class="check">○ Symbol</div>
+<div id="long" class="check">○ 12+ characters</div>
+
+</div>
+
+
+<!-- SUGGESTIONS -->
+
+<div class="box">
+
+<h2>Better Password Ideas</h2>
+
+<div id="suggestions">
+    Enter a password first.
+</div>
+
+</div>
+
+</div>
+</main>
+
+<footer>
+SecurePass • Password Security Tool
+</footer>
+
+
+<script>
+
+function showPassword(){
+
+    var p=document.getElementById("password");
+
+    p.type=p.type=="password" ? "text" : "password";
+}
+
+
+function checkPassword(){
+
+    var p=document.getElementById("password").value;
+
+    if(p==""){
+        reset();
+        return;
+    }
+
+    var a=p.length>=8;
+    var b=/[A-Z]/.test(p);
+    var c=/[a-z]/.test(p);
+    var d=/[0-9]/.test(p);
+    var e=/[^A-Za-z0-9]/.test(p);
+    var f=p.length>=12;
+
+    check("length",a,"8+ characters");
+    check("upper",b,"Uppercase letter");
+    check("lower",c,"Lowercase letter");
+    check("number",d,"Number");
+    check("symbol",e,"Symbol");
+    check("long",f,"12+ characters");
+
+    var score=0;
+
+    if(a) score++;
+    if(b&&c) score++;
+    if(d) score++;
+    if(e) score++;
+    if(f) score++;
+
+    if(score>4) score=4;
+
+    showStrength(score);
+    suggestions(p);
+}
+
+
+function check(id,ok,text){
+
+    var x=document.getElementById(id);
+
+    x.className=ok ? "check pass" : "check";
+    x.innerHTML=(ok ? "✓ " : "○ ")+text;
+}
+
+
+function showStrength(score){
+
+    var result=document.getElementById("result");
+    var bar=document.getElementById("progress");
+
+    var names=["Weak","Fair","Good","Strong"];
+    var colors=["#ef4444","#f59e0b","#22c55e","#38bdf8"];
+
+    result.innerHTML=names[score-1] || "Weak";
+
+    var color=colors[score-1] || "#ef4444";
+
+    result.style.color=color;
+    bar.style.width=(score*25)+"%";
+    bar.style.background=color;
+}
+
+
+function suggestions(p){
+
+    var s="Tiger-River-Cloud123!";
+
+    var improved=p.replace(/a/gi,"@")
+                  .replace(/e/gi,"3")
+                  .replace(/o/gi,"0");
+
+    if(!/[0-9]/.test(improved))
+        improved+="123";
+
+    if(!/[^A-Za-z0-9]/.test(improved))
+        improved+="!";
+
+    document.getElementById("suggestions").innerHTML=
+
+    "<div class='suggestion'>"+
+    "Easy to remember<br>"+
+    "<span class='password'>"+s+"</span>"+
+    "<button class='copy' onclick='copy(\""+s+"\")'>Copy</button>"+
+    "</div>"+
+
+    "<div class='suggestion'>"+
+    "Improved version<br>"+
+    "<span class='password'>"+improved+"</span>"+
+    "<button class='copy' onclick='copy(\""+improved+"\")'>Copy</button>"+
+    "</div>";
+}
+
+
+function copy(text){
+
+    navigator.clipboard.writeText(text);
+    alert("Password copied!");
+}
+
+
+function reset(){
+
+    document.getElementById("result").innerHTML="No password";
+    document.getElementById("result").style.color="white";
+    document.getElementById("progress").style.width="0%";
+
+    check("length",false,"8+ characters");
+    check("upper",false,"Uppercase letter");
+    check("lower",false,"Lowercase letter");
+    check("number",false,"Number");
+    check("symbol",false,"Symbol");
+    check("long",false,"12+ characters");
+
+    document.getElementById("suggestions").innerHTML=
+        "Enter a password first.";
+}
+
+</script>
+
+</body>
+</html>
